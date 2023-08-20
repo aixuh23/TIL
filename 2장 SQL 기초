@@ -1,0 +1,105 @@
+# 2장 SQL 기초
+
+## SELECT 구문
+ - 검색을 위해 사용하는 구문
+
+ [SELECT 검색할 필드 FROM 테이블명 WHERE 추가적인 조건]
+ ex) SELECT name, address
+     FROM Address
+     WHERE address="서울" 
+     AND age >= 30;
+  
+ * NULL : 불명한 데이터 "공란"
+
+ 
+ 
+ - OR 여러 개 써야 할 경우, IN 으로 간단하게 사용 가능
+  ex) SELECT name, address FROM Address WHERE address='서울시' OR address='인천시' OR address='부산시';
+   => SELECT name, address FROM Address WHERE address IN ('서울시', '부산시', '인천시');
+
+
+## GROUP BY 절
+  장점) 다양한 함수를 통해 집계 가능
+   ex) SELECT sex, COUNT(*)
+       FROM Address
+       GROUP BY sex;
+
+## HAVING절
+ : 결과 집합에 조건을 걸어 선택하는 기능 (WHERE절이랑 비슷함)
+  ex) SELECT address COUNT(*)
+      FROM Address
+      GROUP BY address
+      HAVING COUNT(*) = 1;
+
+
+## ORDER BY절
+ : 결과 순서를 보장해서 출력하기 위해 사용
+ ex) SELECT name, phone_nbr, address, sex, age
+     FROM Address
+     ORDER BY DESC;
+
+     //DESC: 내림차순   ASC: 오름차순
+
+
+
+## 뷰와 서브쿼리
+ ● 뷰(VIEW): DB 안에 SELECT 구문을 저장 *내부에 데이터 저장 안함!!
+      - VIEW 생성
+        [ CREATE VIEW 뷰 이름 (필드이름) AS 구문]
+        ex) CREATE VIEW CountAddress (v_address, cnt) AS 
+            SELECT address, count(*)
+            FROM Address
+            GROUP BY address;
+
+ ● 서브쿼리 : FROM 구에 직접 지정하는 SELECT 구문
+   ex) SELECT v_address, cnt
+       FROM (SELECT address AS v_address, COUNT(*) AS cnt 
+             FROM Address
+              GROUP BY address) 
+        AS CountAddress;
+
+
+
+
+
+## 조건 분기, 집합 연산, 윈도우 함수, 갱신
+ ● CASE 구문
+  : 검색 CASE (안에 단순 CASE 포함)
+    like switch 조건문과 비슷
+    => 처음에 있는 WHEN 구로 조건에 맞으면 THEN 구에서 지정한 식이 리턴되면서 CASE 구문 종료
+
+    *** CASE 식은 식을 적을 수 있는 곳이라면 어디든 적을 수 있음! SQL 성능과도 큰 관련이 있으니 기억하자!
+
+
+  ● 집합 연산
+    - UNION: 합집합 (* 중복된 레코드 값은 제거해서 결과 보여줌)
+    - INTERSECT: 교집합 (* 동일함)
+    - EXCEPT: 차집합 (+ 뺄셈 연산은 교환 법칙이 성립하지 않는다.)
+
+
+  ● 윈도우 함수
+    : 집약 기능이 없는 GROUP BY절
+     => 자른 후에 집약하지 않으므로 출력 결과 레코드 수가 입력되는 테이블의 레코드 수와 같음!
+
+
+  ● 트랜잭션과 갱신
+     - 갱신 작업
+       -- 삽입(insert): 레코드 삽입
+                     ex) INSERT INTO 테이블명 (필드명, 필드명2, ...) VALUES (값, 값);
+       -- 제거(delete): 데이터 삭제
+                     ex) DELETE 테이블명;
+       -- 갱신(update): 등록된 데이터 변경
+                     ex) UPDATE 테이블명 SET 필드명=식;
+                     
+
+※정리※
+  - 간단하고 직관적으로 작성할 수 있다는 것이 비절차형 언어 장점
+  - CASE 식은 조건 분기를 표현하는 중요한 식으로 구문이 아니라 식을 바탕으로 함
+  - 윈도우 함수는 GROUP BY 절에서 집약 기능을 제외하고 자르는 기능만 남긴 것!
+
+
+ [연습문제] Q) Address 테이블에서 성별 별로 나이 순위(건너뛰기 있게)를 매기는 SELECT 구문을 생각해보세요.
+           A) SELECT name, sex, age, RANK() OVER(PARTITION BY sex ORDER BY age DESC) rnk_desc
+               FROM Address;
+               
+    
